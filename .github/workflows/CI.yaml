@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  - push
+
+jobs:
+  Build:
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - double: aarch64-linux
+            runner: ubuntu-24.04
+            flake: hello-aarch64
+          - double: x86_64-linux
+            runner: ubuntu-24.04
+            flake: hello
+          - double: aarch64-darwin
+            runner: macos-latest
+            flake: hello
+          - double: x86_64-darwin
+            runner: macos-13
+            flake: hello
+          - double: x86_64-windows
+            runner: ubuntu-24.04
+            flake: hello-windows
+    runs-on: ${{ matrix.target.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Nix
+        uses: DeterminateSystems/nix-installer-action@v13
+      - name: Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v7
+      - name: Build
+        run: nix build -L .#${{ matrix.target.flake }}
